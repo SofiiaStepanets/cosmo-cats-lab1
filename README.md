@@ -26,3 +26,23 @@ docker compose up -d      # WireMock delivery stub on :8081 (bonus)
 - Bonus: `DeliveryClientWireMockTest` stubs the 3rd-party delivery service with WireMock.
 - Coverage report: `build/reports/jacoco/test/html/index.html`
 - CI: `.github/workflows/build.yml` runs on every pull request.
+
+## Database (Lab 3)
+
+MySQL 8 + Liquibase + Spring Data JPA.
+
+```bash
+export DB_PASSWORD=<your local MySQL root password>   # also DB_URL / DB_USERNAME if needed
+./gradlew bootRun
+```
+
+- Schema (3NF): `Category`, `Product`, `Orders`, `OrderItem`, `Cart`, `CartItem` —
+  `src/main/resources/db/changelog/` (versioned changesets 001–009).
+  Ids: `AUTO_INCREMENT` (MySQL equivalent of a sequence), FK + CHECK constraints.
+- Unique: product name within a category (`uq_product_name_category`), order natural id (`uq_Natural_Id`).
+- Index: `idx_productName` on `Product.ProductName`.
+- `@Transactional` services for Product, Category, Order; natural id `Order.naturalOrderId` (UUID).
+- Projections + JPQL: `GET /api/v1/reports/top-products?limit=5` (best sellers, GROUP BY / ORDER BY),
+  `GET /api/v1/reports/categories/{name}/in-stock` (WHERE / ORDER BY).
+- Orders: `POST /api/v1/orders`, `GET /api/v1/orders/{naturalOrderId}`.
+- Integration tests: `@DataJpaTest` + Testcontainers MySQL (`src/test/java/lab1/integration`), Docker required.

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -62,6 +63,18 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
         String detail = ex.getMessage() != null ? ex.getMessage() : "Requested resource was not found.";
         return problem(HttpStatus.NOT_FOUND, "not-found", "Resource not found", detail);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        return problem(HttpStatus.BAD_REQUEST, "validation", "Validation failed", ex.getMessage());
+    }
+
+    /** Порушення обмежень БД, наприклад унікальність назви товару в межах категорії. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleConflict(DataIntegrityViolationException ex) {
+        return problem(HttpStatus.CONFLICT, "conflict", "Data conflict",
+                "Request violates data constraints (e.g. product name must be unique within its category).");
     }
 
     @ExceptionHandler(HttpClientErrorException.NotFound.class)

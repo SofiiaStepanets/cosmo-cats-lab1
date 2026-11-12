@@ -1,14 +1,30 @@
 package lab1.domain;
 
+import jakarta.persistence.*;
+
 import java.math.BigDecimal;
 
+@Entity
+@Table(name = "Product")
 public class Product {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ProductId")
     private Long id;
+
+    @Column(name = "ProductName")
     private String name;
+
     private String description;
+
+    @Column(precision = 10, scale = 2)
     private BigDecimal price;
+
+    @ManyToOne
+    @JoinColumn(name = "CategoryId")
     private Category category;
+
     private boolean inStock;
 
     public Long getId() {

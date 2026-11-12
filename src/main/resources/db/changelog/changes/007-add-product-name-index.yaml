@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-productname-index-to-product
+      author: root
+      changes:
+        - createIndex:
+            indexName: idx_productName
+            tableName: Product
+            columns:
+              - column:
+                  name: ProductName

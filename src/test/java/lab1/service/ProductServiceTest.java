@@ -1,142 +1,156 @@
 package lab1.service;
 
+import java.math.BigDecimal;
+
+import lab1.exception.ResourceNotFoundException;
 import lab1.domain.Category;
 import lab1.domain.Product;
-import lab1.exception.ResourceNotFoundException;
+import lab1.repository.CategoryRepository;
+import lab1.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+/**
+ * Модульні (unit) тести ProductService: репозиторії замінені моками, база не потрібна.
+ * Роботу з реальною базою перевіряє lab1.integration.ProductServiceIntegrationTest.
+ */
+@ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
+    @Mock
+    private ProductRepository productRepository;
+
+    @Mock
+    private CategoryRepository categoryRepository;
+
+    @InjectMocks
     private ProductService productService;
+
+    private Category food;
+    private Product product;
 
     @BeforeEach
     void setUp() {
-        productService = new ProductService();
-    }
+        food = new Category();
+        food.setId(1L);
+        food.setName("Food");
 
-    private static Product product(String name, String price, String categoryName) {
-        Category category = new Category();
-        category.setName(categoryName);
+        Category categoryFromDto = new Category();
+        categoryFromDto.setName("Food");
 
-        Product product = new Product();
-        product.setName(name);
-        product.setDescription("Product for cosmic cats");
-        product.setPrice(new BigDecimal(price));
+        product = new Product();
+        product.setName("Cosmic Cat Food");
+        product.setDescription("Food for intergalactic cats");
+        product.setPrice(new BigDecimal("19.99"));
         product.setInStock(true);
-        product.setCategory(category);
-        return product;
+        product.setCategory(categoryFromDto);
     }
 
     @Test
-    void shouldStartWithMockProducts() {
-        List<Product> products = productService.getAllProducts();
+    void createProductShouldReplaceCategoryWithOneFromDatabase() {
+        when(categoryRepository.findByName("Food")).thenReturn(Optional.of(food));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        assertEquals(3, products.size());
-        assertEquals("Star Tuna", products.get(0).getName());
-    }
+        Product result = productService.createProduct(product);
 
-    @Test
-    void getAllProductsShouldBeSortedById() {
-        List<Product> products = productService.getAllProducts();
-
-        for (int i = 1; i < products.size(); i++) {
-            assertTrue(products.get(i - 1).getId() < products.get(i).getId());
-        }
-    }
-
-    @Test
-    void createProductShouldAssignNewIdAndCategoryFromCatalog() {
-        Product created = productService.createProduct(product("Comet Bowl", "15.00", "toys"));
-
-        assertEquals(4L, created.getId());
-        assertEquals("Toys", created.getCategory().getName());
-        assertNotNull(created.getCategory().getId());
-        assertEquals(4, productService.getAllProducts().size());
-    }
-
-    @Test
-    void createProductShouldIgnoreIdFromRequest() {
-        Product product = product("Comet Bowl", "15.00", "Toys");
-        product.setId(777L);
-
-        Product created = productService.createProduct(product);
-
-        assertEquals(4L, created.getId());
-        assertThrows(ResourceNotFoundException.class, () -> productService.getProductById(777L));
+        assertSame(food, result.getCategory());
+        verify(productRepository).save(product);
     }
 
     @Test
     void createProductShouldThrowWhenCategoryNotFound() {
-        Product product = product("Comet Bowl", "15.00", "Unknown");
+        when(categoryRepository.findByName("Food")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> productService.createProduct(product));
-        assertEquals(3, productService.getAllProducts().size());
+        verify(productRepository, never()).save(any());
     }
 
     @Test
-    void createProductShouldThrowWhenCategoryNameIsNull() {
-        Product product = product("Comet Bowl", "15.00", null);
+    void getAllProductsShouldReturnRepositoryResult() {
+        when(productRepository.findAll()).thenReturn(List.of(product));
 
-        assertThrows(ResourceNotFoundException.class, () -> productService.createProduct(product));
+        assertEquals(List.of(product), productService.getAllProducts());
     }
 
     @Test
     void getProductByIdShouldReturnProductWhenFound() {
-        Product product = productService.getProductById(1L);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
 
-        assertEquals("Star Tuna", product.getName());
-        assertEquals(0, new BigDecimal("19.99").compareTo(product.getPrice()));
+        assertSame(product, productService.getProductById(1L));
     }
 
     @Test
     void getProductByIdShouldThrowWhenNotFound() {
-        ResourceNotFoundException ex = assertThrows(ResourceNotFoundException.class,
-                () -> productService.getProductById(999L));
+        when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertEquals("Product with id 999 not found.", ex.getMessage());
+        assertThrows(ResourceNotFoundException.class, () -> productService.getProductById(999L));
     }
 
     @Test
-    void updateProductShouldReplaceFieldsAndKeepPathId() {
-        Product changes = product("Comet Tuna", "25.00", "Food");
-        changes.setId(12345L);
+    void updateProductShouldSetIdFromPathAndSave() {
+        when(categoryRepository.findByName("Food")).thenReturn(Optional.of(food));
+        when(productRepository.findById(1L)).thenReturn(Optional.of(new Product()));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Product updated = productService.updateProduct(1L, changes);
+        product.setId(777L);
+        Product result = productService.updateProduct(1L, product);
 
-        assertEquals(1L, updated.getId());
-        assertEquals("Comet Tuna", productService.getProductById(1L).getName());
-        assertEquals(3, productService.getAllProducts().size());
+        assertEquals(1L, result.getId());
+        assertSame(food, result.getCategory());
     }
 
     @Test
     void updateProductShouldThrowWhenProductNotFound() {
-        Product changes = product("Comet Tuna", "25.00", "Food");
+        when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(999L, changes));
+        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(999L, product));
+        verify(productRepository, never()).save(any());
     }
 
     @Test
-    void updateProductShouldThrowWhenCategoryNotFound() {
-        Product changes = product("Comet Tuna", "25.00", "Unknown");
+    void deleteProductShouldDeleteWhenExists() {
+        when(productRepository.existsById(1L)).thenReturn(true);
 
-        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(1L, changes));
-        assertEquals("Star Tuna", productService.getProductById(1L).getName());
-    }
-
-    @Test
-    void deleteProductShouldRemoveExistingProduct() {
         assertTrue(productService.deleteProduct(1L));
-        assertThrows(ResourceNotFoundException.class, () -> productService.getProductById(1L));
+        verify(productRepository).deleteById(1L);
     }
 
     @Test
     void deleteProductShouldReturnFalseWhenNotFound() {
+        when(productRepository.existsById(999L)).thenReturn(false);
+
         assertFalse(productService.deleteProduct(999L));
+        verify(productRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void updateProductShouldThrowWhenCategoryNotFound() {
+        when(productRepository.findById(1L)).thenReturn(Optional.of(new Product()));
+        when(categoryRepository.findByName("Food")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> productService.updateProduct(1L, product));
+        verify(productRepository, never()).save(any());
+    }
+
+    @Test
+    void createProductShouldIgnoreIdFromRequest() {
+        when(categoryRepository.findByName("Food")).thenReturn(Optional.of(food));
+        when(productRepository.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        product.setId(777L);
+        Product result = productService.createProduct(product);
+
+        assertNull(result.getId());
     }
 }

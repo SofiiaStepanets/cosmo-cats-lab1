@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  1
+      author:  author
+      labels: example-label
+      context: example-context
+      comment: example-comment
+      changes:
+        - createTable:
+            tableName:  Category
+            columns:
+              - column:
+                  name:  CategoryId
+                  type:  int
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false
+              - column:
+                  name:  CategoryName
+                  type:  varchar(50)
+                  constraints:
+                    nullable:  false

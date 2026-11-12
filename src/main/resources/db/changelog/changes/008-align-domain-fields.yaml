@@ -1,0 +1,70 @@
+databaseChangeLog:
+  # Category (domain.Category): description, active
+  - changeSet:
+      id: 8-1
+      author: root
+      comment: Add Description and Active to Category
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: Category
+                columnName: Description
+      changes:
+        - addColumn:
+            tableName: Category
+            columns:
+              - column:
+                  name: Description
+                  type: varchar(255)
+              - column:
+                  name: Active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+
+  # Product (domain.Product): description, price, inStock
+  - changeSet:
+      id: 8-2
+      author: root
+      comment: Add Description, Price and InStock to Product
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: Product
+                columnName: Price
+      changes:
+        - addColumn:
+            tableName: Product
+            columns:
+              - column:
+                  name: Description
+                  type: varchar(255)
+              - column:
+                  name: Price
+                  type: decimal(10,2)
+                  defaultValueNumeric: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: InStock
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE Product ADD CONSTRAINT chk_product_price CHECK (Price >= 0)
+
+  # Orders (domain.Order has no date field): default so inserts don't fail
+  - changeSet:
+      id: 8-3
+      author: root
+      comment: Default value for Orders.OrderDate
+      changes:
+        - addDefaultValue:
+            tableName: Orders
+            columnName: OrderDate
+            columnDataType: datetime
+            defaultValueComputed: CURRENT_TIMESTAMP

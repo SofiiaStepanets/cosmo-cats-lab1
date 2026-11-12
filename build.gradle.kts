@@ -15,9 +15,13 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.liquibase:liquibase-core")
+    runtimeOnly("com.mysql:mysql-connector-j")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
+    testImplementation("org.testcontainers:mysql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -25,6 +29,8 @@ val coverageExcludes = listOf("lab1/CosmoCatsApplication.class")
 
 tasks.test {
     useJUnitPlatform()
+    // Testcontainers 1.21 + Docker Engine 29: pin the Docker API version the engine still accepts
+    systemProperty("api.version", "1.44")
     finalizedBy(tasks.jacocoTestReport)
 }
 

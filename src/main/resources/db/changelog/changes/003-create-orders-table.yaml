@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  3
+      author:  author
+      labels: example-label
+      context: example-context
+      comment: example-comment
+      changes:
+        - createTable:
+            tableName:  Orders
+            columns:
+              - column:
+                  name:  OrderId
+                  type:  int
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false
+              - column:
+                  name:  OrderDate
+                  type:  datetime
+                  constraints:
+                    nullable:  false

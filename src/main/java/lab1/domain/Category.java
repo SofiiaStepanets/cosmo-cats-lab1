@@ -1,10 +1,21 @@
 package lab1.domain;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "Category")
 public class Category {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "CategoryId")
     private Long id;
+
+    @Column(name = "CategoryName")
     private String name;
+
     private String description;
+
     private boolean active = true;
 
     public Category() {
