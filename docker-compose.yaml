@@ -1,0 +1,8 @@
+services:
+  delivery-stub:
+    image: wiremock/wiremock:3.13.2
+    container_name: delivery-stub
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./wiremock:/home/wiremock
