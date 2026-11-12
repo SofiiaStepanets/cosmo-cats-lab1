@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  4
+      author:  author
+      labels: example-label
+      context: example-context
+      comment: example-comment
+      changes:
+        - createTable:
+            tableName:  Cart
+            columns:
+              - column:
+                  name:  CartId
+                  type:  int
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false

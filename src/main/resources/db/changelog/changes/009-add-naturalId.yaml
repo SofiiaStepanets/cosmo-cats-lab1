@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 9
+      author: root
+      comment: Add NaturalId to Orders
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: Orders
+                columnName: NaturalOrderId
+      changes:
+        - addColumn:
+            tableName: Orders
+            columns:
+              - column:
+                  name: NaturalOrderId
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: Orders
+            columnNames: NaturalOrderId
+            constraintName: uq_Natural_Id

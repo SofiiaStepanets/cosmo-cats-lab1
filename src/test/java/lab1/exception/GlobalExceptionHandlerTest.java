@@ -6,6 +6,7 @@ import lab1.controller.ProductController;
 import lab1.dto.ProductDetailsDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -74,5 +75,22 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(500, problem.getStatus());
         assertFalse(problem.getDetail().contains("password"));
+    }
+
+    @Test
+    void handleConflictShouldReturn409() {
+        ProblemDetail problem = handler.handleConflict(new DataIntegrityViolationException("duplicate"));
+
+        assertEquals(409, problem.getStatus());
+        assertEquals("Data conflict", problem.getTitle());
+        assertFalse(problem.getDetail().contains("duplicate"));
+    }
+
+    @Test
+    void handleIllegalArgumentShouldReturn400() {
+        ProblemDetail problem = handler.handleIllegalArgument(new IllegalArgumentException("bad limit"));
+
+        assertEquals(400, problem.getStatus());
+        assertEquals("bad limit", problem.getDetail());
     }
 }

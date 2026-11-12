@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  5
+      author:  author
+      labels: example-label
+      context: example-context
+      comment: example-comment
+      changes:
+        - createTable:
+            tableName:  OrderItem
+            columns:
+              - column:
+                  name:  OrderItemId
+                  type:  int
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false
+              - column:
+                  name:  OrderId
+                  type:  int
+                  constraints:
+                    nullable:  false
+              - column:
+                  name: ProductId
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: Quantity
+                  type: int
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: OrderItem
+            baseColumnNames: OrderId
+            constraintName: fk_Orders
+            referencedTableName: Orders
+            referencedColumnNames: OrderId
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        - addForeignKeyConstraint:
+            baseTableName: OrderItem
+            baseColumnNames: ProductId
+            constraintName: fk_OrderItem_Product
+            referencedTableName: Product
+            referencedColumnNames: ProductId
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        - sql:
+            sql: ALTER TABLE OrderItem ADD CONSTRAINT chk_orderitem_quantity CHECK (Quantity > 0)

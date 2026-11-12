@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  2
+      author:  author
+      labels: example-label
+      context: example-context
+      comment: example-comment
+      changes:
+        - createTable:
+            tableName:  Product
+            columns:
+              - column:
+                  name:  ProductId
+                  type:  int
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false
+              - column:
+                  name:  ProductName
+                  type:  varchar(50)
+                  constraints:
+                    nullable:  false
+              - column:
+                  name: CategoryId
+                  type: int
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: Product
+            baseColumnNames: CategoryId
+            constraintName: fk_product_category
+            referencedTableName: Category
+            referencedColumnNames: CategoryId
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        - addUniqueConstraint:
+            tableName: Product
+            columnNames: ProductName, CategoryId
+            constraintName: uq_product_name_category

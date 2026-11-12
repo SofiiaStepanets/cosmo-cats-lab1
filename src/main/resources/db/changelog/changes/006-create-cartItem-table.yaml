@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  6
+      author:  author
+      labels: example-label
+      context: example-context
+      comment: example-comment
+      changes:
+        - createTable:
+            tableName:  CartItem
+            columns:
+              - column:
+                  name:  CartItemId
+                  type:  int
+                  autoIncrement:  true
+                  constraints:
+                    primaryKey:  true
+                    nullable:  false
+              - column:
+                  name:  CartId
+                  type:  int
+                  constraints:
+                    nullable:  false
+              - column:
+                  name: ProductId
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: Quantity
+                  type: int
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: CartItem
+            baseColumnNames: CartId
+            constraintName: fk_Cart
+            referencedTableName: Cart
+            referencedColumnNames: CartId
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        - addForeignKeyConstraint:
+            baseTableName: CartItem
+            baseColumnNames: ProductId
+            constraintName: fk_CartItem_Product
+            referencedTableName: Product
+            referencedColumnNames: ProductId
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        - sql:
+            sql: ALTER TABLE CartItem ADD CONSTRAINT chk_cartitem_quantity CHECK (Quantity > 0)
