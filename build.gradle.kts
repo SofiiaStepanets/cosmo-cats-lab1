@@ -3,6 +3,7 @@ plugins {
     jacoco
     id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.github.davidmc24.gradle.plugin.avro") version "1.9.1"
 }
 
 group = "lab1"
@@ -10,6 +11,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    maven("https://packages.confluent.io/maven/")
 }
 
 dependencies {
@@ -19,13 +21,19 @@ dependencies {
     implementation("org.liquibase:liquibase-core")
     runtimeOnly("com.mysql:mysql-connector-j")
 
+    implementation("org.springframework.kafka:spring-kafka")
+    implementation("org.apache.avro:avro:1.12.0")
+    implementation("io.confluent:kafka-avro-serializer:7.9.0")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     testImplementation("org.testcontainers:mysql")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-val coverageExcludes = listOf("lab1/CosmoCatsApplication.class")
+// Application entry point and Avro-generated event classes are not hand-written code
+val coverageExcludes = listOf("lab1/CosmoCatsApplication.class", "lab1/event/**")
 
 tasks.test {
     useJUnitPlatform()
