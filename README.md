@@ -46,3 +46,18 @@ export DB_PASSWORD=<your local MySQL root password>   # also DB_URL / DB_USERNAM
   `GET /api/v1/reports/categories/{name}/in-stock` (WHERE / ORDER BY).
 - Orders: `POST /api/v1/orders`, `GET /api/v1/orders/{naturalOrderId}`.
 - Integration tests: `@DataJpaTest` + Testcontainers MySQL (`src/test/java/lab1/integration`), Docker required.
+
+## Kafka (Lab 4.2)
+
+```bash
+docker compose up -d                 # Kafka (:29092), Schema Registry (:8087), WireMock (:8081)
+./gradlew bootRun
+./scripts/send-test-order.sh         # creates products and an order -> event order-placed
+```
+
+- `POST /api/v1/orders` with `{"items":[{"productId":1,"quantity":2}],"catsNames":["Luna","Comet"]}`
+  saves the order (transaction), then `OrderProducer.sendOrder` publishes **order-placed** (Avro, key = natural id).
+- Avro schema: `src/main/avro/OrderPlacedEvent.avsc`, registered in Schema Registry by `KafkaAvroSerializer`.
+- `OrderConsumer.consumeOrder` (`@KafkaListener`) stores the event in `ConsumedOrders` via Spring Data JPA;
+  redelivery of the same order is skipped (idempotent consumer, unique natural id).
+- Tests: `@EmbeddedKafka` + mock Schema Registry (`src/test/java/lab1/kafka`).

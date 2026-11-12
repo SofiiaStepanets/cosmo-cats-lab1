@@ -17,3 +17,5 @@ databaseChangeLog:
       file: db/changelog/changes/008-align-domain-fields.yaml
   - include:
       file: db/changelog/changes/009-add-naturalId.yaml
+  - include:
+      file: db/changelog/changes/010-create-consumedOrders-table.yaml

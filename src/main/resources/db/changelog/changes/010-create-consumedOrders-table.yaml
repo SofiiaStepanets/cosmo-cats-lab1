@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - preConditions:
+      - runningAs:
+          username:  root
+  - changeSet:
+      id:  10
+      author:  author
+      comment: adding consumed orders
+      changes:
+        - createTable:
+            tableName:  ConsumedOrders
+            columns:
+              - column:
+                  name: ConsOrdersId
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: CatsNaturalOrderId
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: TotalAmount
+                  type: decimal(10,2)
+                  defaultValueNumeric: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: CatsNames
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: WhenReceived
+                  type: datetime
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: ConsumedOrders
+            columnNames: CatsNaturalOrderId
+            constraintName: uq_Natural_Id_Cats
+        - addDefaultValue:
+            tableName: ConsumedOrders
+            columnName: WhenReceived
+            columnDataType: datetime
+            defaultValueComputed: CURRENT_TIMESTAMP

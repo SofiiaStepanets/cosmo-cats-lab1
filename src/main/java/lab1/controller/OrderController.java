@@ -1,13 +1,19 @@
 package lab1.controller;
 
+import jakarta.validation.Valid;
 import lab1.domain.Order;
+import lab1.domain.OrderItem;
+import lab1.domain.Product;
 import lab1.dto.OrderDetailsDTO;
+import lab1.dto.PlaceOrderRequest;
+import lab1.producer.OrderProducer;
 import lab1.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
@@ -15,14 +21,19 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderProducer orderProducer;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, OrderProducer orderProducer) {
         this.orderService = orderService;
+        this.orderProducer = orderProducer;
     }
 
+    /** Зберігає замовлення в БД (транзакція), після коміту публікує подію order-placed у Kafka. */
     @PostMapping
-    public ResponseEntity<Map<String, String>> createOrder(@RequestBody Order order) {
-        Order saved = orderService.createOrder(order);
+    public ResponseEntity<Map<String, String>> createOrder(@RequestBody @Valid PlaceOrderRequest request) {
+        Order saved = orderService.createOrder(toOrder(request));
+        orderProducer.sendOrder(saved, request.catsNames());
+
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{naturalOrderId}")
                 .buildAndExpand(saved.getNaturalOrderId())
@@ -43,5 +54,16 @@ public class OrderController {
                                 item.getSubtotal()))
                         .toList(),
                 order.getTotalAmount());
+    }
+
+    private static Order toOrder(PlaceOrderRequest request) {
+        Order order = new Order();
+        order.setItems(new ArrayList<>());
+        for (PlaceOrderRequest.Item item : request.items()) {
+            Product product = new Product();
+            product.setId(item.productId());
+            order.getItems().add(new OrderItem(product, item.quantity()));
+        }
+        return order;
     }
 }

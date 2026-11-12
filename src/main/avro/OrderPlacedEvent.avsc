@@ -1,0 +1,47 @@
+{
+  "type": "record",
+  "name": "OrderPlacedEvent",
+  "namespace": "lab1.event",
+  "fields": [
+    {
+      "name": "naturalOrderId",
+      "type": "string"
+    },
+    {
+      "name": "productList",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "OrderItemEvent",
+          "fields": [
+            {
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "name": "price",
+              "type": "double"
+            },
+            {
+              "name": "quantity",
+              "type": "int"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "totalAmount",
+      "type": "double"
+    },
+    {
+      "name": "catsNames",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    }
+  ]
+}
+
