@@ -1,0 +1,31 @@
+{
+  "mappings": [
+    {
+    "request": {
+      "method": "GET",
+      "url": "/api/delivery/101"
+    },
+    "response": {
+      "status": 200,
+      "jsonBody": {
+        "orderId": 101,
+        "status": "IN_TRANSIT",
+        "estimatedDelivery": "2026-10-11",
+        "carrier": "carrier"
+      },
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+      },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/delivery/999"
+      },
+      "response": {
+        "status": 404
+      }
+    }
+  ]
+}
